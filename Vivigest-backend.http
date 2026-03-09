@@ -1,0 +1,6 @@
+@Vivigest_backend_HostAddress = http://localhost:5223
+
+GET {{Vivigest_backend_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
