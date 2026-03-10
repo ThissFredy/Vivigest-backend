@@ -10,7 +10,7 @@ using Vivigest_backend.Infrastructure.Persistance;
 
 namespace Vivigest_backend.Migrations
 {
-    [DbContext(typeof(ApplicationDbContext))]
+    [DbContext(typeof(VivigestDbContext))]
     partial class ApplicationDbContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)

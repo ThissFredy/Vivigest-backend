@@ -11,7 +11,7 @@ using Vivigest_backend.Infrastructure.Persistance;
 
 namespace Vivigest_backend.Migrations
 {
-    [DbContext(typeof(ApplicationDbContext))]
+    [DbContext(typeof(VivigestDbContext))]
     [Migration("20260309213212_AddUsers")]
     partial class AddUsers
     {

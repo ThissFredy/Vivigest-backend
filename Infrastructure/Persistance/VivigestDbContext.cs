@@ -3,10 +3,10 @@ using Vivigest_backend.Domain.Entities;
 
 namespace Vivigest_backend.Infrastructure.Persistance
 {
-    public class ApplicationDbContext : DbContext
+    public class VivigestDbContext : DbContext
     {
         // Builder for the ApplicationDbContext class
-        public ApplicationDbContext (DbContextOptions<ApplicationDbContext> options) : base(options)
+        public VivigestDbContext (DbContextOptions<VivigestDbContext> options) : base(options)
         {
         }
 
@@ -15,6 +15,25 @@ namespace Vivigest_backend.Infrastructure.Persistance
         public DbSet<User> Users { get; set; }
         public DbSet<Rol> Rols { get; set; }
         public DbSet<UserRol> UserRoles { get; set; }
+        public DbSet<AuthorizedPerson> AuthorizedPersons { get; set; }
+        public DbSet<Complex> Complexes { get; set; }
+        public DbSet<Correspondence> Correspondences { get; set; }
+        public DbSet<CorrespondenceState> CorrespondenceStates { get; set; }
+        public DbSet<CorrespondenceType> CorrespondenceTypes { get; set; }
+        public DbSet<Incident> Incidents { get; set; }
+        public DbSet<IncidentType> IncidentTypes { get; set; }
+        public DbSet<Payment> Payment { get; set; }
+        public DbSet<PaymentMethod> PaymentMethods { get; set; }
+        public DbSet<PaymentPeriod> PaymentPeriods { get; set; }
+        public DbSet<RelationshipType> RelationshipTypes { get; set; }
+        public DbSet<Residence> Residences { get; set; }
+        public DbSet<State> States { get; set; }
+        public DbSet<Tower> Towers { get; set; }
+        public DbSet<Unit> Units { get; set; }
+
+        public DbSet<Visit> Visits { get; set; }
+        public DbSet<Visitor> Visitors { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

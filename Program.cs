@@ -4,7 +4,7 @@ using Vivigest_backend.Infrastructure.Persistance;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
+builder.Services.AddDbContext<VivigestDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("Vivigestconnection"));
 });
