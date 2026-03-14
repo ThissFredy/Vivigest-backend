@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Vivigest_backend.Infrastructure.Persistance;
 
@@ -11,9 +12,11 @@ using Vivigest_backend.Infrastructure.Persistance;
 namespace Vivigest_backend.Migrations
 {
     [DbContext(typeof(VivigestDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260314215530_DatabaseV1")]
+    partial class DatabaseV1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -60,40 +63,6 @@ namespace Vivigest_backend.Migrations
                     b.HasIndex("IdState");
 
                     b.ToTable("AuthorizedPersons");
-                });
-
-            modelBuilder.Entity("Vivigest_backend.Domain.Entities.ChargeAccount", b =>
-                {
-                    b.Property<int>("IdChargeAccount")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdChargeAccount"));
-
-                    b.Property<decimal>("Amount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("IdPaymentPeriod")
-                        .HasColumnType("int");
-
-                    b.Property<int>("IdUnit")
-                        .HasColumnType("int");
-
-                    b.Property<string>("concept")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("IdChargeAccount");
-
-                    b.HasIndex("IdPaymentPeriod");
-
-                    b.HasIndex("IdUnit");
-
-                    b.ToTable("ChargeAccounts");
                 });
 
             modelBuilder.Entity("Vivigest_backend.Domain.Entities.Complex", b =>
@@ -680,25 +649,6 @@ namespace Vivigest_backend.Migrations
                     b.Navigation("ResidentUser");
 
                     b.Navigation("State");
-                });
-
-            modelBuilder.Entity("Vivigest_backend.Domain.Entities.ChargeAccount", b =>
-                {
-                    b.HasOne("Vivigest_backend.Domain.Entities.PaymentPeriod", "PaymentPeriod")
-                        .WithMany()
-                        .HasForeignKey("IdPaymentPeriod")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Vivigest_backend.Domain.Entities.Unit", "Unit")
-                        .WithMany()
-                        .HasForeignKey("IdUnit")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("PaymentPeriod");
-
-                    b.Navigation("Unit");
                 });
 
             modelBuilder.Entity("Vivigest_backend.Domain.Entities.Correspondence", b =>

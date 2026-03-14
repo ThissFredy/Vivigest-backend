@@ -11,5 +11,6 @@
         public DateTime CreatedAt { get; set; }
 
         public State State { get; set; } = null!;
+        public Tower Tower { get; set; } = null!;
     }
 }
