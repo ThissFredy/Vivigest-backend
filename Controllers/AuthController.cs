@@ -15,10 +15,10 @@ namespace Vivigest_backend.Controllers
             _userService = userService;
         }
 
-        [HttpPost(Name = "login")]
+        [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
         {
-            var result = await _userService.LoginAsync(request);
+            var result = await _userService.loginAsync(request);
 
             if (!result.IsSuccess)
             {
@@ -32,6 +32,24 @@ namespace Vivigest_backend.Controllers
                     return NotFound(new { message = result.Error.Description });
                 }
 
+                return BadRequest("Something bad went wrong");
+            }
+
+            return Ok(result.Value);
+        }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterUserRequestDto request)
+        {
+            var result = await _userService.registerAsync(request);
+
+            if (!result.IsSuccess)
+            {
+
+                if (result.Error.Code == "AlreadyExists")
+                {
+                    return Unauthorized(new { message = result.Error.Description });
+                }
                 return BadRequest("Something bad went wrong");
             }
 

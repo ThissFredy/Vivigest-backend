@@ -16,7 +16,7 @@ namespace Vivigest_backend.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<User?> GetUserByEmailAsync(string email)
+        public async Task<User?> getUserByEmailAsync(string email)
         {
             return await _context.Users
                 .Include(u => u.Person)
@@ -25,7 +25,7 @@ namespace Vivigest_backend.Infrastructure.Repositories
                 .FirstOrDefaultAsync(u => u.Person.Email == email);
         }
 
-        public async Task<IEnumerable<User>> GetAllAsync()
+        public async Task<IEnumerable<User>> getAllAsync()
         {
             return await _context.Users
                 .Include(u => u.Person)
@@ -34,7 +34,7 @@ namespace Vivigest_backend.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<User?> GetByIdAsync(int id)
+        public async Task<User?> getByIdAsync(int id)
         {
             return await _context.Users
                 .Include(u => u.Person)
@@ -43,20 +43,20 @@ namespace Vivigest_backend.Infrastructure.Repositories
                 .FirstOrDefaultAsync(u => u.IdUser == id);
         }
 
-        public async Task<User> AddAsync(User entity)
+        public async Task<User> addAsync(User entity)
         {
             await _context.Users.AddAsync(entity);
             await _context.SaveChangesAsync();
             return entity;
         }
 
-        public async Task UpdateAsync(User entity)
+        public async Task updateAsync(User entity)
         {
             _context.Users.Update(entity);
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task deleteAsync(int id)
         {
             var user = await _context.Users.FindAsync(id);
 

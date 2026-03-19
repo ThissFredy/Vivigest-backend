@@ -4,6 +4,7 @@ namespace Vivigest_backend.Application.Interfaces.IRepository
 {
     public interface IUserRepository : IGenericRepository<User>
     {
-        Task<User?> GetUserByEmailAsync(string Email);
+        Task<User?> getUserByEmailAsync(string Email);
+
     }
 }

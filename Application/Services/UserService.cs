@@ -1,10 +1,12 @@
-﻿using Azure.Identity;
+using Azure.Identity;
 using BCrypt.Net;
 using Vivigest_backend.Application.Common;
 using Vivigest_backend.Application.DTOs.Users;
 using Vivigest_backend.Application.Interfaces.IAuth;
 using Vivigest_backend.Application.Interfaces.IRepository;
 using Vivigest_backend.Application.Interfaces.IService;
+using Vivigest_backend.Application.Utilities;
+using Vivigest_backend.Domain.Entities;
 
 namespace Vivigest_backend.Application.Services
 {
@@ -19,41 +21,100 @@ namespace Vivigest_backend.Application.Services
             _jwtProvider = jwtProvider;
         }
 
-        public async Task<Result<UserRespondeDto>> LoginAsync(LoginRequestDto request)
+        /// <summary>
+        /// Login user by email and password. If the credentials are valid, returns a JWT token.
+        /// <param name="request">The login request containing email and password.</param>
+        /// </summary>
+        public async Task<Result<UserResponseDto>> loginAsync(LoginRequestDto request)
         {
-            var user = await _userRepository.GetUserByEmailAsync(request.Email);
+            var user = await _userRepository.getUserByEmailAsync(request.Email);
 
             // Check if user exists
             if (user == null)
             {
-                return Result<UserRespondeDto>.Failure(new Error("InvalidCredentials", "The email or password is incorrect."));
+                return Result<UserResponseDto>.Failure(new Error("InvalidCredentials", "The email or password is incorrect."));
             }
 
             // Check if is active
             if (!user.Activated)
             {
-                return Result<UserRespondeDto>.Failure(new Error("NotFound", "The user is not activated"));
+                return Result<UserResponseDto>.Failure(new Error("NotFound", "The user is not activated"));
             }
 
-            // Check password
-            bool isPasswordValid = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
+            // Valid password
+            bool isPasswordValid = PasswordManager.verifyPasswordHash(
+                request.Password,
+                user.PasswordHash,
+                user.PasswordSalt
+            );
 
             if (!isPasswordValid)
             {
-                return Result<UserRespondeDto>.Failure(new Error("NotFound", "The email or password is incorrect."));
+                return Result<UserResponseDto>.Failure(new Error("InvalidCredentials", "The email or password is incorrect."));
             }
 
             // Generate JWT token
             string generatedToken = _jwtProvider.Generate(user);
 
-            var response = new UserRespondeDto
+            var response = new UserResponseDto
             {
                 IdUser = user.IdUser,
-                FullName = $"{user.Person.Names}" + $" {user.Person.LastNames}",
+                Names = user.Person.Names,
+                LastNames = user.Person.LastNames,
                 Email = user.Person.Email,
                 Token = generatedToken,
             };
-            return Result<UserRespondeDto>.Success(response);
+
+            return Result<UserResponseDto>.Success(response);
+        }
+
+        public async Task<Result<RegisterUserResponseDto>> registerAsync(RegisterUserRequestDto request)
+        {
+            // Check if user already exists
+            var existingUser = await _userRepository.getUserByEmailAsync(request.Email);
+            if (existingUser != null)
+            {
+                return Result<RegisterUserResponseDto>.Failure(new Error("AlreadyExists", "A user with this email already exists."));
+            }
+
+            // Create Person
+            var person = new Person
+            {
+                IdDocumentType = request.IdDocumentType,
+                DocumentNumber = request.NitNumber.ToString(),
+                Names = request.Names,
+                LastNames = request.LastNames,
+                Phone = request.PhoneNumber,
+                Email = request.Email,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            var (passwordHash, passwordSalt) = PasswordManager.generatePassword(request.Password);
+
+            // Create User
+            var newUser = new User
+            {
+                Person = person,
+                PasswordHash = passwordHash,
+                PasswordSalt = passwordSalt,
+                Activated = true,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            var createdUser = await _userRepository.addAsync(newUser);
+
+
+            string generatedToken = _jwtProvider.Generate(createdUser);
+            var response = new RegisterUserResponseDto
+            {
+                IdUser = createdUser.IdUser,
+                FullName = $"{createdUser.Person.Names} {createdUser.Person.LastNames}",
+                Email = createdUser.Person.Email,
+                Role = "User",
+                Token = generatedToken,
+            };
+
+            return Result<RegisterUserResponseDto>.Success(response);
         }
     }
 }

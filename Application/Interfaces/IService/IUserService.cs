@@ -5,6 +5,7 @@ namespace Vivigest_backend.Application.Interfaces.IService
 {
     public interface IUserService
     {
-        Task<Result<UserRespondeDto>> LoginAsync(LoginRequestDto request);
+        Task<Result<UserResponseDto>> loginAsync(LoginRequestDto request);
+        Task<Result<RegisterUserResponseDto>> registerAsync(RegisterUserRequestDto request);
     }
 }
