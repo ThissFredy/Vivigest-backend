@@ -40,7 +40,49 @@ namespace Vivigest_backend.Controllers
                 return BadRequest(result.Error.Description);
             }
 
-            return Ok(result.Value); // By standard usually 201 Created is returned, but Ok works according to your Result pattern
+            return Created();
+        }
+
+        [HttpGet("get/{id}")]
+        [Authorize]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var result = await _documentTypeService.getDocumentTypeByIdService(id);
+
+            if (!result.IsSuccess)
+            {
+                return NotFound(result.Error.Description);
+            }
+
+            return Ok(result.Value);
+        }
+
+        [HttpPut("update/{id}")]
+        [Authorize]
+        public async Task<IActionResult> Update(int id, [FromBody] DocumentTypeUpdateRequestDto request)
+        {
+            var result = await _documentTypeService.updateDocumentTypeService(id, request);
+
+            if (!result.IsSuccess)
+            {
+                return NotFound(result.Error.Description);
+            }
+
+            return Ok(result.Value);
+        }
+
+        [HttpDelete("delete/{id}")]
+        [Authorize]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var result = await _documentTypeService.deleteDocumentTypeService(id);
+
+            if (!result.IsSuccess)
+            {
+                return NotFound(result.Error.Description);
+            }
+
+            return Ok(result.Value);
         }
     }
 }

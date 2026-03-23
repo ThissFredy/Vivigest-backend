@@ -55,5 +55,64 @@ namespace Vivigest_backend.Application.Services
 
             return Result<DocumentTypeAddResponseDto>.Success(response);
         }
+
+        public async Task<Result<DocumentTypeGetByIdResponseDto>> getDocumentTypeByIdService(int id)
+        {
+            var documentType = await _documentTypeRepository.getByIdAsync(id);
+
+            if (documentType == null)
+            {
+                return Result<DocumentTypeGetByIdResponseDto>.Failure(new Error("DocumentType.NotFound", "The document type was not found."));
+            }
+
+            var response = new DocumentTypeGetByIdResponseDto
+            {
+                IdDocumentType = documentType.IdDocumentType,
+                NameDocumentType = documentType.NameDocumentType
+            };
+
+            return Result<DocumentTypeGetByIdResponseDto>.Success(response);
+        }
+
+        public async Task<Result<DocumentTypeUpdateResponseDto>> updateDocumentTypeService(int id, DocumentTypeUpdateRequestDto request)
+        {
+            var documentType = await _documentTypeRepository.getByIdAsync(id);
+
+            if (documentType == null)
+            {
+                return Result<DocumentTypeUpdateResponseDto>.Failure(new Error("DocumentType.NotFound", "The document type was not found."));
+            }
+
+            documentType.NameDocumentType = request.NameDocumentType;
+            await _documentTypeRepository.updateAsync(documentType);
+
+            var response = new DocumentTypeUpdateResponseDto
+            {
+                IdDocumentType = documentType.IdDocumentType,
+                NameDocumentType = documentType.NameDocumentType
+            };
+
+            return Result<DocumentTypeUpdateResponseDto>.Success(response);
+        }
+
+        public async Task<Result<DocumentTypeDeleteResponseDto>> deleteDocumentTypeService(int id)
+        {
+            var documentType = await _documentTypeRepository.getByIdAsync(id);
+
+            if (documentType == null)
+            {
+                return Result<DocumentTypeDeleteResponseDto>.Failure(new Error("DocumentType.NotFound", "The document type was not found."));
+            }
+
+            await _documentTypeRepository.deleteAsync(id);
+
+            var response = new DocumentTypeDeleteResponseDto
+            {
+                IdDocumentType = id,
+                Message = "Document type deleted successfully."
+            };
+
+            return Result<DocumentTypeDeleteResponseDto>.Success(response);
+        }
     }
 }
