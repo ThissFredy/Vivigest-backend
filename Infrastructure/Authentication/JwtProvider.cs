@@ -30,6 +30,7 @@ namespace Vivigest_backend.Infrastructure.Authentication
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.IdUser.ToString()),
+                new Claim(JwtRegisteredClaimNames.Sub, user.Person.Names.ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, user.Person.Email),
             };
 
