@@ -14,32 +14,36 @@ namespace Vivigest_backend.Application.Services
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
+        private readonly IRefreshTokenRepository _refreshTokenRepository;
         private readonly IJwtProvider _jwtProvider;
 
-        public UserService(IUserRepository userRepository, IJwtProvider jwtProvider)
+        public UserService(IUserRepository userRepository, 
+            IJwtProvider jwtProvider,
+            IRefreshTokenRepository refreshToken)
         {
             _userRepository = userRepository;
             _jwtProvider = jwtProvider;
+            _refreshTokenRepository = refreshToken;
         }
 
         /// <summary>
         /// Login user by email and password. If the credentials are valid, returns a JWT token.
         /// <param name="request">The login request containing email and password.</param>
         /// </summary>
-        public async Task<Result<(UserResponseDto User, string Token)>> loginAsync(LoginRequestDto request)
+        public async Task<Result<(UserResponseDto User, string Token, string RefreshToken)>> loginAsync(LoginRequestDto request)
         {
             var user = await _userRepository.getUserByEmailAsync(request.Email);
 
             // Check if user exists
             if (user == null)
             {
-                return Result<(UserResponseDto User, string Token)>.Failure(new Error("InvalidCredentials", "The email or password is incorrect."));
+                return Result<(UserResponseDto User, string Token, string RefreshToken)>.Failure(new Error("InvalidCredentials", "The email or password is incorrect."));
             }
 
             // Check if is active
             if (!user.Activated)
             {
-                return Result<(UserResponseDto User, string Token)>.Failure(new Error("NotFound", "The user is not activated"));
+                return Result<(UserResponseDto User, string Token, string RefreshToken)>.Failure(new Error("NotFound", "The user is not activated"));
             }
 
             // Valid password
@@ -51,11 +55,23 @@ namespace Vivigest_backend.Application.Services
 
             if (!isPasswordValid)
             {
-                return Result<(UserResponseDto User, string Token)>.Failure(new Error("InvalidCredentials", "The email or password is incorrect."));
+                return Result<(UserResponseDto User, string Token, string RefreshToken)>.Failure(new Error("InvalidCredentials", "The email or password is incorrect."));
             }
 
             // Generate JWT token
             string generatedToken = _jwtProvider.Generate(user);
+            string refreshToken = _jwtProvider.GenerateRefreshToken();
+
+            var newRefreshToken = new RefreshToken
+            {
+                IdUser = user.IdUser,
+                Token = refreshToken,
+                Expires = DateTime.UtcNow.AddDays(7),
+                IsExpired = false,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _refreshTokenRepository.addAsync(newRefreshToken);
 
             var response = new UserResponseDto
             {
@@ -65,16 +81,16 @@ namespace Vivigest_backend.Application.Services
                 Email = user.Person.Email,
             };
 
-            return Result<(UserResponseDto User, string Token)>.Success((response, generatedToken));
+            return Result<(UserResponseDto User, string Token, string RefreshToken)>.Success((response, generatedToken, refreshToken));
         }
 
-        public async Task<Result<(RegisterUserResponseDto User, string Token)>> registerAsync(RegisterUserRequestDto request)
+        public async Task<Result<(RegisterUserResponseDto User, string Token, string RefreshToken)>> registerAsync(RegisterUserRequestDto request)
         {
             // Check if user already exists
             var existingUser = await _userRepository.getUserByEmailAsync(request.Email);
             if (existingUser != null)
             {
-                return Result<(RegisterUserResponseDto User, string Token)>.Failure(new Error("AlreadyExists", "A user with this email already exists."));
+                return Result<(RegisterUserResponseDto User, string Token, string RefreshToken)>.Failure(new Error("AlreadyExists", "A user with this email already exists."));
             }
 
             // Create Person
@@ -105,6 +121,20 @@ namespace Vivigest_backend.Application.Services
 
 
             string generatedToken = _jwtProvider.Generate(createdUser);
+            string refreshToken = _jwtProvider.GenerateRefreshToken();
+
+            var newRefreshToken = new RefreshToken
+            {
+                IdUser = createdUser.IdUser,
+                Token = refreshToken,
+                Expires = DateTime.UtcNow.AddDays(7),
+                IsExpired = false,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _refreshTokenRepository.addAsync(newRefreshToken);
+
+
             var response = new RegisterUserResponseDto
             {
                 IdUser = createdUser.IdUser,
@@ -113,7 +143,45 @@ namespace Vivigest_backend.Application.Services
                 Role = "User",
             };
 
-            return Result<(RegisterUserResponseDto User, string Token)>.Success((response, generatedToken));
+            return Result<(RegisterUserResponseDto User, string Token, string RefreshToken)>.Success((response, generatedToken, refreshToken));
+        }
+
+        public async Task<Result<(string Token, string RefreshToken)>> refreshTokenAsync(string CurrentRefreshToken)
+        {
+            var storedToken = await _refreshTokenRepository.getByTokenAsync(CurrentRefreshToken);
+
+            if (storedToken == null)
+            {
+                return Result<(string Token, string RefreshToken)>.Failure(new Error("InvalidRefreshToken", "El token es invalido."));
+            }
+
+            if (storedToken.IsExpired || storedToken.Expires < DateTime.UtcNow)
+            {
+                return Result<(string, string)>.Failure(new Error("ExpiredToken", "El token de refresco ha expirado o fue revocado. Inicie sesión nuevamente."));
+            }
+
+
+            var user = await _userRepository.getByIdAsync(storedToken.IdUser);
+
+
+            storedToken.IsExpired = true;
+            await _refreshTokenRepository.updateAsync(storedToken);
+
+            string newJwtToken = _jwtProvider.Generate(user);
+            string newRefreshToken = _jwtProvider.GenerateRefreshToken();
+
+
+            var newRefreshTokenEntity = new RefreshToken
+            {
+                IdUser = user.IdUser,
+                Token = newRefreshToken,
+                Expires = DateTime.UtcNow.AddDays(7),
+                IsExpired = false,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _refreshTokenRepository.addAsync(newRefreshTokenEntity);
+            return Result<(string Token, string RefreshToken)>.Success((newJwtToken, newRefreshToken));
         }
     }
 }

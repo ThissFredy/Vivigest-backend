@@ -12,8 +12,8 @@ using Vivigest_backend.Infrastructure.Persistance;
 namespace Vivigest_backend.Migrations
 {
     [DbContext(typeof(VivigestDbContext))]
-    [Migration("20260314222810_Database_V2")]
-    partial class Database_V2
+    [Migration("20260323013057_DB_0.1")]
+    partial class DB_01
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -398,6 +398,37 @@ namespace Vivigest_backend.Migrations
                     b.HasIndex("IdDocumentType");
 
                     b.ToTable("Persons");
+                });
+
+            modelBuilder.Entity("Vivigest_backend.Domain.Entities.RefreshToken", b =>
+                {
+                    b.Property<int>("IdToken")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdToken"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("Expires")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("IdUser")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsExpired")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("IdToken");
+
+                    b.HasIndex("IdUser");
+
+                    b.ToTable("RefreshTokens");
                 });
 
             modelBuilder.Entity("Vivigest_backend.Domain.Entities.RelationshipType", b =>
@@ -802,6 +833,17 @@ namespace Vivigest_backend.Migrations
                         .IsRequired();
 
                     b.Navigation("DocumentType");
+                });
+
+            modelBuilder.Entity("Vivigest_backend.Domain.Entities.RefreshToken", b =>
+                {
+                    b.HasOne("Vivigest_backend.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("IdUser")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Vivigest_backend.Domain.Entities.Residence", b =>

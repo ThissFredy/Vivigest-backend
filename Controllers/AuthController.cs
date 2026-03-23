@@ -72,5 +72,13 @@ namespace Vivigest_backend.Controllers
 
             Response.Cookies.Append("token", token, cookieOptions);
         }
+
+        [HttpPost("logout")]
+        public IActionResult Logout()
+        {
+            Response.Cookies.Delete("token");
+
+            return Ok(new { message = "Sesión cerrada correctamente" });
+        }
     }
 }

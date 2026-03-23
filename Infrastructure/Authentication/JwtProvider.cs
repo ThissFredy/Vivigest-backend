@@ -1,6 +1,7 @@
 ﻿using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using Vivigest_backend.Application.Interfaces.IAuth;
 using Vivigest_backend.Domain.Entities;
@@ -52,6 +53,15 @@ namespace Vivigest_backend.Infrastructure.Authentication
 
             return new JwtSecurityTokenHandler().WriteToken(token);
 
+        }
+
+        public string GenerateRefreshToken()
+        {
+            var randomNumber = new byte[64];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomNumber);
+
+            return Convert.ToBase64String(randomNumber);
         }
     }
 }

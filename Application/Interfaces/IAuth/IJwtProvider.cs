@@ -5,5 +5,6 @@ namespace Vivigest_backend.Application.Interfaces.IAuth
     public interface IJwtProvider
     {
         string Generate(User user);
+        string GenerateRefreshToken();
     }
 }

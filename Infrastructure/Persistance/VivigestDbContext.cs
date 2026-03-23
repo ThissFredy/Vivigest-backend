@@ -33,6 +33,7 @@ namespace Vivigest_backend.Infrastructure.Persistance
         public DbSet<Visit> Visits { get; set; }
         public DbSet<Visitor> Visitors { get; set; }
         public DbSet<ChargeAccount> ChargeAccounts { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -64,8 +65,7 @@ namespace Vivigest_backend.Infrastructure.Persistance
             modelBuilder.Entity<Unit>().HasKey(u => u.IdUnit);
             modelBuilder.Entity<Visit>().HasKey(v => v.IdVisit);
             modelBuilder.Entity<Visitor>().HasKey(v => v.IdVisitor);
-
-            // Llave Primaria de ChargeAccount
+            modelBuilder.Entity<RefreshToken>().HasKey(rt => rt.IdToken);
             modelBuilder.Entity<ChargeAccount>().HasKey(ca => ca.IdChargeAccount);
 
             // ==========================================
@@ -104,6 +104,13 @@ namespace Vivigest_backend.Infrastructure.Persistance
             // ==========================================
             // 2. RELATIONS OF USERS AND PERSONS
             // ==========================================
+
+            // Refreshtoken - User (Muchos a 1)
+            modelBuilder.Entity<RefreshToken>()
+               .HasOne(rt => rt.User)
+               .WithMany()
+               .HasForeignKey(rt => rt.IdUser)
+               .OnDelete(DeleteBehavior.Cascade);
 
             // User - UserRol (1 a Muchos)
             modelBuilder.Entity<UserRol>()
