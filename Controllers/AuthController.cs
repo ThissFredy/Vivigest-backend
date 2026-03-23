@@ -35,7 +35,9 @@ namespace Vivigest_backend.Controllers
                 return BadRequest("Something bad went wrong");
             }
 
-            return Ok(result.Value);
+            SetTokenCookie(result.Value.Token);
+
+            return Ok(result.Value.User);
         }
 
         [HttpPost("register")]
@@ -53,7 +55,22 @@ namespace Vivigest_backend.Controllers
                 return BadRequest("Something bad went wrong");
             }
 
-            return Ok(result.Value);
+            SetTokenCookie(result.Value.Token);
+
+            return Ok(result.Value.User);
+        }
+
+        private void SetTokenCookie(string token)
+        {
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true, // TODO: CAMBIAR EN PRODUCCIÓN
+                SameSite = SameSiteMode.Lax, // TODO: CAMBIAR EN PRODUCCIÓN
+                Expires = DateTime.UtcNow.AddHours(1)
+            };
+
+            Response.Cookies.Append("token", token, cookieOptions);
         }
     }
 }

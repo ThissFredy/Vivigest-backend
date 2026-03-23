@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Vivigest_backend.Application.DTOs.DocumentType;
 using Vivigest_backend.Application.Interfaces.IService;
@@ -29,6 +30,7 @@ namespace Vivigest_backend.Controllers
         }
 
         [HttpPost("create")]
+        [Authorize]
         public async Task<IActionResult> Create([FromBody] DocumentTypeRequestDto request)
         {
             var result = await _documentTypeService.addDocumentTypeService(request);

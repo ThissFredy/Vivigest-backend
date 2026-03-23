@@ -1,5 +1,6 @@
 using Azure.Identity;
 using BCrypt.Net;
+using System.Runtime.CompilerServices;
 using Vivigest_backend.Application.Common;
 using Vivigest_backend.Application.DTOs.Users;
 using Vivigest_backend.Application.Interfaces.IAuth;
@@ -25,20 +26,20 @@ namespace Vivigest_backend.Application.Services
         /// Login user by email and password. If the credentials are valid, returns a JWT token.
         /// <param name="request">The login request containing email and password.</param>
         /// </summary>
-        public async Task<Result<UserResponseDto>> loginAsync(LoginRequestDto request)
+        public async Task<Result<(UserResponseDto User, string Token)>> loginAsync(LoginRequestDto request)
         {
             var user = await _userRepository.getUserByEmailAsync(request.Email);
 
             // Check if user exists
             if (user == null)
             {
-                return Result<UserResponseDto>.Failure(new Error("InvalidCredentials", "The email or password is incorrect."));
+                return Result<(UserResponseDto User, string Token)>.Failure(new Error("InvalidCredentials", "The email or password is incorrect."));
             }
 
             // Check if is active
             if (!user.Activated)
             {
-                return Result<UserResponseDto>.Failure(new Error("NotFound", "The user is not activated"));
+                return Result<(UserResponseDto User, string Token)>.Failure(new Error("NotFound", "The user is not activated"));
             }
 
             // Valid password
@@ -50,7 +51,7 @@ namespace Vivigest_backend.Application.Services
 
             if (!isPasswordValid)
             {
-                return Result<UserResponseDto>.Failure(new Error("InvalidCredentials", "The email or password is incorrect."));
+                return Result<(UserResponseDto User, string Token)>.Failure(new Error("InvalidCredentials", "The email or password is incorrect."));
             }
 
             // Generate JWT token
@@ -62,19 +63,18 @@ namespace Vivigest_backend.Application.Services
                 Names = user.Person.Names,
                 LastNames = user.Person.LastNames,
                 Email = user.Person.Email,
-                Token = generatedToken,
             };
 
-            return Result<UserResponseDto>.Success(response);
+            return Result<(UserResponseDto User, string Token)>.Success((response, generatedToken));
         }
 
-        public async Task<Result<RegisterUserResponseDto>> registerAsync(RegisterUserRequestDto request)
+        public async Task<Result<(RegisterUserResponseDto User, string Token)>> registerAsync(RegisterUserRequestDto request)
         {
             // Check if user already exists
             var existingUser = await _userRepository.getUserByEmailAsync(request.Email);
             if (existingUser != null)
             {
-                return Result<RegisterUserResponseDto>.Failure(new Error("AlreadyExists", "A user with this email already exists."));
+                return Result<(RegisterUserResponseDto User, string Token)>.Failure(new Error("AlreadyExists", "A user with this email already exists."));
             }
 
             // Create Person
@@ -111,10 +111,9 @@ namespace Vivigest_backend.Application.Services
                 FullName = $"{createdUser.Person.Names} {createdUser.Person.LastNames}",
                 Email = createdUser.Person.Email,
                 Role = "User",
-                Token = generatedToken,
             };
 
-            return Result<RegisterUserResponseDto>.Success(response);
+            return Result<(RegisterUserResponseDto User, string Token)>.Success((response, generatedToken));
         }
     }
 }
