@@ -199,5 +199,123 @@ namespace Vivigest_backend.Application.Services
             
             return Result<(string Token, string RefreshToken)>.Success((newJwtToken, newRefreshToken));
         }
+
+        /// <summary>
+        /// Revokes an active refresh token, effectively logging the user out of that session.
+        /// </summary>
+        /// <param name="token">The refresh token to revoke.</param>
+        /// <returns>A result indicating success or failure of the operation.</returns>
+        public async Task<Result<bool>> revokeRefreshToken(string token)
+        {
+       
+            await _refreshTokenRepository.revokeRefreshToken(token);
+
+            return Result<bool>.Success(true);
+        }
+
+        public async Task<Result<UserGetAllResponseDto>> getAllUsersAsync()
+        {
+            var users = await _userRepository.getAllAsync();
+
+            var dtos = users.Select(u => new UserGetByIdResponseDto
+            {
+                IdUser = u.IdUser,
+                IdPerson = u.Person?.IdPerson ?? 0,
+                IdDocumentType = u.Person?.IdDocumentType ?? 0,
+                DocumentNumber = u.Person?.DocumentNumber ?? string.Empty,
+                Names = u.Person?.Names ?? string.Empty,
+                LastNames = u.Person?.LastNames ?? string.Empty,
+                Phone = u.Person?.Phone ?? string.Empty,
+                Email = u.Person?.Email ?? string.Empty,
+                Activated = u.Activated
+            }).ToList();
+
+            var response = new UserGetAllResponseDto
+            {
+                Users = dtos
+            };
+
+            return Result<UserGetAllResponseDto>.Success(response);
+        }
+
+        public async Task<Result<UserGetByIdResponseDto>> getUserByIdAsync(int id)
+        {
+            var user = await _userRepository.getByIdAsync(id);
+
+            if (user == null)
+            {
+                return Result<UserGetByIdResponseDto>.Failure(new Error("User.NotFound", "The user was not found."));
+            }
+
+            var response = new UserGetByIdResponseDto
+            {
+                IdUser = user.IdUser,
+                IdPerson = user.Person?.IdPerson ?? 0,
+                IdDocumentType = user.Person?.IdDocumentType ?? 0,
+                DocumentNumber = user.Person?.DocumentNumber ?? string.Empty,
+                Names = user.Person?.Names ?? string.Empty,
+                LastNames = user.Person?.LastNames ?? string.Empty,
+                Phone = user.Person?.Phone ?? string.Empty,
+                Email = user.Person?.Email ?? string.Empty,
+                Activated = user.Activated
+            };
+
+            return Result<UserGetByIdResponseDto>.Success(response);
+        }
+
+        public async Task<Result<UserUpdateResponseDto>> updateUserAsync(int id, UserUpdateRequestDto request)
+        {
+            var user = await _userRepository.getByIdAsync(id);
+
+            if (user == null)
+            {
+                return Result<UserUpdateResponseDto>.Failure(new Error("User.NotFound", "The user was not found."));
+            }
+
+            if (user.Person != null)
+            {
+                user.Person.IdDocumentType = request.IdDocumentType;
+                user.Person.DocumentNumber = request.DocumentNumber;
+                user.Person.Names = request.Names;
+                user.Person.LastNames = request.LastNames;
+                user.Person.Phone = request.Phone;
+                user.Person.Email = request.Email;
+            }
+
+            await _userRepository.updateAsync(user);
+
+            var response = new UserUpdateResponseDto
+            {
+                IdUser = user.IdUser,
+                Names = user.Person?.Names ?? string.Empty,
+                LastNames = user.Person?.LastNames ?? string.Empty,
+                Email = user.Person?.Email ?? string.Empty,
+                Message = "Profile updated successfully."
+            };
+
+            return Result<UserUpdateResponseDto>.Success(response);
+        }
+
+        public async Task<Result<UserToggleActiveResponseDto>> deactivateUserAsync(int id)
+        {
+            var user = await _userRepository.getByIdAsync(id);
+
+            if (user == null)
+            {
+                return Result<UserToggleActiveResponseDto>.Failure(new Error("User.NotFound", "The user was not found."));
+            }
+
+            user.Activated = false;
+            await _userRepository.updateAsync(user);
+
+            var response = new UserToggleActiveResponseDto
+            {
+                IdUser = user.IdUser,
+                Activated = user.Activated,
+                Message = "User deactivated successfully."
+            };
+
+            return Result<UserToggleActiveResponseDto>.Success(response);
+        }
     }
 }

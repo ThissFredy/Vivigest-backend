@@ -28,5 +28,11 @@ namespace Vivigest_backend.Application.Interfaces.IService
         /// <param name="CurrentRefreshToken">The current valid refresh token.</param>
         /// <returns>A result containing a new JWT token and a new refresh token.</returns>
         Task<Result<(string Token, string RefreshToken)>> refreshTokenAsync(string CurrentRefreshToken);
+        Task<Result<bool>> revokeRefreshToken(string refreshToken);
+
+        Task<Result<UserGetAllResponseDto>> getAllUsersAsync();
+        Task<Result<UserGetByIdResponseDto>> getUserByIdAsync(int id);
+        Task<Result<UserUpdateResponseDto>> updateUserAsync(int id, UserUpdateRequestDto request);
+        Task<Result<UserToggleActiveResponseDto>> deactivateUserAsync(int id);
     }
 }
