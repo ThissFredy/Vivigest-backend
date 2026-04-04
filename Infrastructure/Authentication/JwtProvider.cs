@@ -1,4 +1,4 @@
-﻿using Microsoft.IdentityModel.Tokens;
+using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -31,7 +31,7 @@ namespace Vivigest_backend.Infrastructure.Authentication
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.IdUser.ToString()),
-                new Claim(JwtRegisteredClaimNames.Sub, user.Person.Names.ToString()),
+                new Claim(ClaimTypes.Name, user.Person.Names.ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, user.Person.Email),
             };
 
@@ -48,7 +48,7 @@ namespace Vivigest_backend.Infrastructure.Authentication
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddHours(1),
+                expires: DateTime.UtcNow.AddHours(1),
                 signingCredentials: credentials);
 
             return new JwtSecurityTokenHandler().WriteToken(token);

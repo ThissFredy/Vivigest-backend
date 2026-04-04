@@ -4,6 +4,7 @@ namespace Vivigest_backend.Application.Interfaces.IRepository
 {
     public interface IRefreshTokenRepository : IGenericRepository<RefreshToken>
     {
-        public Task<RefreshToken?> getByTokenAsync(string token);
+        Task<RefreshToken?> getByTokenAsync(string token);
+        Task revokeRefreshToken(string refreshToken);
     }
 }

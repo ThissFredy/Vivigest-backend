@@ -46,6 +46,7 @@ namespace Vivigest_backend.Controllers
 
             // Set the authentication token in a cookie
             SetTokenCookie(result.Value.Token);
+            SetRefreshTokenCookie(result.Value.RefreshToken);
 
             return Ok(result.Value.User);
         }
@@ -72,9 +73,49 @@ namespace Vivigest_backend.Controllers
 
             // Set the authentication token in a cookie
             SetTokenCookie(result.Value.Token);
+            SetRefreshTokenCookie(result.Value.RefreshToken);
 
             return Ok(result.Value.User);
         }
+
+        [HttpPost("refresh-token")]
+        public async Task<IActionResult> RefreshToken()
+        {
+            var refreshToken = Request.Cookies["refreshToken"];
+            if (string.IsNullOrEmpty(refreshToken))
+            {
+                return Unauthorized(new { message = "Refresh token is missing" });
+            }
+            var result = await _userService.refreshTokenAsync(refreshToken);
+            if (!result.IsSuccess)
+            {
+                return Unauthorized(new { message = result.Error.Description });
+            }
+            // Set the new authentication token in a cookie
+            SetTokenCookie(result.Value.Token);
+            SetRefreshTokenCookie(result.Value.RefreshToken);
+
+            return Ok(new {message = "Token refreshed succesfully"});
+        }
+
+
+
+        /// <summary>
+        /// Logs out the current user by deleting the token cookie.
+        /// </summary>
+        /// <returns>An IActionResult confirming the logout operation.</returns>
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            // Remove the authentication token cookie
+            Response.Cookies.Delete("token");
+            var refreshToken = Request.Cookies["refreshToken"];
+            await _userService.revokeRefreshToken(refreshToken);
+            Response.Cookies.Delete("refreshToken");
+
+            return Ok(new { message = "Sesión cerrada correctamente" });
+        }
+
 
         /// <summary>
         /// Sets the JWT token in an HTTP-only cookie.
@@ -85,25 +126,29 @@ namespace Vivigest_backend.Controllers
             var cookieOptions = new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true, // TODO: CAMBIAR EN PRODUCCIÓN
-                SameSite = SameSiteMode.Lax, // TODO: CAMBIAR EN PRODUCCIÓN
-                Expires = DateTime.UtcNow.AddHours(1)
+                Secure = true,
+                SameSite = SameSiteMode.Lax,
+                Expires = DateTime.UtcNow.AddMinutes(15)
             };
 
             Response.Cookies.Append("token", token, cookieOptions);
         }
 
         /// <summary>
-        /// Logs out the current user by deleting the token cookie.
+        /// Sets the JWT token in an HTTP-only cookie.
         /// </summary>
-        /// <returns>An IActionResult confirming the logout operation.</returns>
-        [HttpPost("logout")]
-        public IActionResult Logout()
+        /// <param name="token">The JWT token to store.</param>
+        private void SetRefreshTokenCookie(string refreshToken)
         {
-            // Remove the authentication token cookie
-            Response.Cookies.Delete("token");
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Lax,
+                Expires = DateTime.UtcNow.AddDays(7)
+            };
 
-            return Ok(new { message = "Sesión cerrada correctamente" });
+            Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
         }
     }
 }

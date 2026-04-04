@@ -57,5 +57,20 @@ namespace Vivigest_backend.Infrastructure.Repositories
             return await _context.RefreshTokens
                 .FirstOrDefaultAsync(u => u.Token == token);
         }
+
+        public async Task revokeRefreshToken(string refreshToken)
+        {
+            var token = await getByTokenAsync(refreshToken);
+
+            if (token == null)
+            {
+                return;
+            }
+
+            token.IsExpired = true;
+
+            await _context.SaveChangesAsync();
+            
+        }
     }
 }
