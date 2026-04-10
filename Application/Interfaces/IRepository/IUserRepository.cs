@@ -1,4 +1,4 @@
-﻿using Vivigest_backend.Domain.Entities;
+using Vivigest_backend.Domain.Entities;
 
 namespace Vivigest_backend.Application.Interfaces.IRepository
 {
