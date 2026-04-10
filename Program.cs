@@ -23,6 +23,7 @@ builder.Services.AddDbContext<VivigestDbContext>(options =>
 
 builder.Services.AddScoped<IJwtProvider, JwtProvider>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+builder.Services.AddScoped<IDocumentTypeRepository, TypeDocumentRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IDocumentTypeService, DocumentTypeService>();
