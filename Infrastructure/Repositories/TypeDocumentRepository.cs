@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Vivigest_backend.Application.Interfaces;
 using Vivigest_backend.Application.Interfaces.IRepository;
 using Vivigest_backend.Domain.Entities;
@@ -6,13 +6,19 @@ using Vivigest_backend.Infrastructure.Persistance;
 
 namespace Vivigest_backend.Infrastructure.Repositories
 {
-    public class TypeDocumentRepository : IGenericRepository<DocumentType>
+    public class TypeDocumentRepository : IDocumentTypeRepository
     {
         private readonly VivigestDbContext _context;
 
         public TypeDocumentRepository(VivigestDbContext context)
         {
             _context = context;
+        }
+
+        public async Task<bool> isDocumentNumberRegisteredAsync(string documentNumber)
+        {
+            return await _context.Users
+                .AnyAsync(u => u.Person != null && u.Person.DocumentNumber == documentNumber);
         }
 
         public async Task<IEnumerable<DocumentType>> getAllAsync()

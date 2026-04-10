@@ -19,14 +19,17 @@ namespace Vivigest_backend.Application.Services
         private readonly IUserRepository _userRepository;
         private readonly IRefreshTokenRepository _refreshTokenRepository;
         private readonly IJwtProvider _jwtProvider;
+        private readonly IDocumentTypeRepository _documentTypeRepository;
 
         public UserService(IUserRepository userRepository, 
             IJwtProvider jwtProvider,
-            IRefreshTokenRepository refreshToken)
+            IRefreshTokenRepository refreshToken,
+            IDocumentTypeRepository documentTypeRepository)
         {
             _userRepository = userRepository;
             _jwtProvider = jwtProvider;
             _refreshTokenRepository = refreshToken;
+            _documentTypeRepository = documentTypeRepository;
         }
 
         /// <summary>
@@ -95,6 +98,20 @@ namespace Vivigest_backend.Application.Services
         /// <returns>A result containing the registered user information and generated tokens.</returns>
         public async Task<Result<(RegisterUserResponseDto User, string Token, string RefreshToken)>> registerAsync(RegisterUserRequestDto request)
         {
+            // Validar que el tipo de documento existe
+            var documentType = await _documentTypeRepository.getByIdAsync(request.IdDocumentType);
+            if (documentType == null)
+            {
+                return Result<(RegisterUserResponseDto User, string Token, string RefreshToken)>.Failure(new Error("DocumentType.NotFound", "Tipo de documento no existe."));
+            }
+
+            // Validar si el número de documento ya está registrado
+            var isDocumentRegistered = await _documentTypeRepository.isDocumentNumberRegisteredAsync(request.NitNumber.ToString());
+            if (isDocumentRegistered)
+            {
+                return Result<(RegisterUserResponseDto User, string Token, string RefreshToken)>.Failure(new Error("DocumentNumber.AlreadyExists", "El número de documento ya se encuentra registrado."));
+            }
+
             // Check if user already exists
             var existingUser = await _userRepository.getUserByEmailAsync(request.Email);
             if (existingUser != null)

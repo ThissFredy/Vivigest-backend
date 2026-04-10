@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Vivigest_backend.Application.Interfaces;
 using Vivigest_backend.Application.Interfaces.IRepository;
 using Vivigest_backend.Domain.Entities;

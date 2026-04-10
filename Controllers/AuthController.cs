@@ -41,7 +41,7 @@ namespace Vivigest_backend.Controllers
                     return NotFound(new { message = result.Error.Description });
                 }
 
-                return BadRequest("Something bad went wrong");
+                return BadRequest(new { message = result.Error.Description ?? "Something bad went wrong" });
             }
 
             // Set the authentication token in a cookie
@@ -66,9 +66,11 @@ namespace Vivigest_backend.Controllers
             {
                 if (result.Error.Code == "AlreadyExists")
                 {
+                    // Existing logic for email conflict
                     return Unauthorized(new { message = result.Error.Description });
                 }
-                return BadRequest("Something bad went wrong");
+
+                return BadRequest(new { message = result.Error.Description ?? "Something bad went wrong" });
             }
 
             // Set the authentication token in a cookie
